@@ -1,4 +1,4 @@
-//package ru.gmtmsk.addressbook.config;
+/package ru.gmtmsk.addressbook.config;
 //
 //import org.springframework.context.annotation.Bean;
 //import org.springframework.context.annotation.Configuration;
