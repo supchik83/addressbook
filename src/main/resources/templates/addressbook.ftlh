@@ -33,7 +33,7 @@
                     <tbody>
                     <#list employees as employee>
                         <tr href = "${employee.id}" class="lightview" data-lightview-type="iframe" data-lightview-options="skin:'light'">
-                            <td><img src="data:image/png;base64,${employee.photo}" width="65" height="65" loading="lazy"></td>
+                            <td><img src="/photo/${employee.id}" width="65" height="65" loading="lazy"></td>
                             <td width="400">${employee.name}</td>
                             <td>${employee.innerPhone}</td>
                             <td><a href="mailto:${employee.email}"> ${employee.email}</a></td>

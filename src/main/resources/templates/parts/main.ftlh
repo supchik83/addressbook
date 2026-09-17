@@ -150,7 +150,7 @@
     <footer class="footer">
         <div class="container">
             <div class="text-center">
-                <span>ГАУ ИНПЦ "Гормедтехника", 2025</span>
+                <span>ГАУ ИНПЦ "Гормедтехника", 2026</span>
             </div>
         </div>
     </footer>

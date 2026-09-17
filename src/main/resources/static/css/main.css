@@ -889,7 +889,6 @@ blockquote small:before {
     white-space: nowrap;
   }
 }
-
 .u-tabs {
   display: flex;
   flex-direction: column;
@@ -989,6 +988,7 @@ a.u-button-style.u-border-3 {
 
 .u-body {
   font-family: 'Open Sans',sans-serif;
+  padding-bottom: 3.6rem;
 }
 h1,
 h2,
