@@ -1,290 +1,318 @@
-/*Модальное окно ligthview*/
+/* =========================================================
+   Карточка сотрудника (модальное окно lightview)
+   Верхний блок зафиксирован, список подчинённых скроллится
+   ========================================================= */
 
-.u-section-1 .u-sheet-1 {
-    min-height: 341px;
+html,
+body.ei-body {
+    height: 100%;
 }
 
-.u-section-1 .u-layout-wrap-1 {
-    margin-top: 21px;
-    margin-bottom: 0;
+body.ei-body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #f4f6f8;
+    font-family: Arial, sans-serif;
+    color: #1f2933;
+    -webkit-font-smoothing: antialiased;
 }
 
-.u-section-1 .u-layout-cell-1 {
-    min-height: 320px;
+.ei-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.u-section-1 .u-container-layout-1 {
-    padding: 21px 30px;
+/* ---------- Верхний блок: не двигается ---------- */
+
+.ei-card {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 24px;
+    padding: 22px;
+    background: #fff;
+    border: 1px solid #eceff2;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(20, 30, 40, 0.06);
 }
 
-.u-section-1 .u-image-1 {
-    height: 278px;
-    margin-top: 0;
-    margin-bottom: 0;
-    --radius: 10px;
-
+.ei-photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    max-height: 260px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #2cccc4, #4a8bc9);
 }
 
-.u-section-1 .u-layout-cell-2 {
-    min-height: 320px;
+.ei-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.u-section-1 .u-container-layout-2 {
-    /*padding: 12px 0;*/
+.ei-photo-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    font-size: 64px;
+    font-weight: 600;
 }
 
-.u-section-1 .u-text-1 {
-    margin: 0 46px 0 21px;
+.ei-name {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #1f2933;
 }
 
-.u-section-1 .u-text-2 {
-    margin: 10px 46px 0 21px;
+.ei-position {
+    margin: 6px 0 0;
+    font-size: 15px;
+    line-height: 1.35;
+    color: #4a5461;
 }
 
-.u-section-1 .u-text-3 {
-    margin: 1px 46px 0 21px;
+.ei-dept {
+    margin: 3px 0 0;
+    font-size: 13.5px;
+    line-height: 1.35;
+    color: #7a838e;
 }
 
-.u-section-1 .u-line-1 {
-    width: 762px;
-    transform-origin: left center 0px;
-    margin: 9px auto 0 23px;
+.ei-divider {
+    height: 1px;
+    margin: 16px 0;
+    background: #eceff2;
 }
 
-.u-section-1 .u-text-4 {
-    margin: 11px 46px 0 21px;
+.ei-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px 24px;
 }
 
-.u-section-1 .u-text-5 {
-    margin: 0 46px 0 21px;
+.ei-fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
 }
 
-.u-section-1 .u-text-6 {
-    margin: 0 46px 0 21px;
+.ei-fact-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: #eef6f5;
+    color: #17817b;
 }
 
-.u-section-1 .u-text-7 {
-    margin: 0 46px 0 21px;
+.ei-fact-label {
+    font-size: 11.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #9aa2ab;
 }
 
-.u-section-1 .u-line-2 {
-    width: 764px;
-    transform-origin: left center 0px;
-    margin: 10px auto 0 21px;
+.ei-fact-value {
+    font-size: 14px;
+    line-height: 1.35;
+    color: #1f2933;
+    overflow-wrap: anywhere;
 }
 
-.u-section-1 .u-text-8 {
-    margin: 1px 46px 0 21px;
+.ei-fact-value a {
+    color: #17817b;
+    text-decoration: none;
 }
 
-@media (max-width: 1199px) {
-    .u-section-1 .u-sheet-1 {
-        min-height: 330px;
-    }
-
-    .u-section-1 .u-layout-wrap-1 {
-        position: relative;
-    }
-
-    .u-section-1 .u-layout-cell-1 {
-        min-height: 264px;
-    }
-
-    .u-section-1 .u-image-1 {
-        height: 209px;
-    }
-
-    .u-section-1 .u-layout-cell-2 {
-        min-height: 264px;
-    }
-
-    .u-section-1 .u-text-1 {
-        margin-right: 0;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-text-2 {
-        margin-right: 0;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-text-3 {
-        margin-right: 0;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-line-1 {
-        width: 674px;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-text-4 {
-        margin-right: 0;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-text-5 {
-        margin-right: 0;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-text-6 {
-        margin-right: 0;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-text-7 {
-        margin-right: 0;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-line-2 {
-        width: 674px;
-        margin-left: 0;
-    }
-
-    .u-section-1 .u-text-8 {
-        margin-right: 0;
-        margin-left: 0;
-    }
+.ei-fact-value a:hover {
+    text-decoration: underline;
 }
 
-@media (max-width: 991px) {
-    .u-section-1 .u-sheet-1 {
-        min-height: 253px;
-    }
+/* ---------- Подчинённые: скроллится только список ---------- */
 
-    .u-section-1 .u-layout-cell-1 {
-        min-height: 202px;
-    }
-
-    .u-section-1 .u-image-1 {
-        height: 153px;
-    }
-
-    .u-section-1 .u-layout-cell-2 {
-        min-height: 100px;
-    }
-
-    .u-section-1 .u-line-1 {
-        width: 516px;
-    }
-
-    .u-section-1 .u-line-2 {
-        width: 516px;
-    }
+.ei-subs {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #eceff2;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(20, 30, 40, 0.06);
+    overflow: hidden;
 }
 
-@media (max-width: 767px) {
-    .u-section-1 .u-sheet-1 {
-        min-height: 760px;
-    }
-
-    .u-section-1 .u-layout-cell-1 {
-        min-height: 303px;
-    }
-
-    .u-section-1 .u-container-layout-1 {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
-    .u-section-1 .u-image-1 {
-        height: 265px;
-    }
+.ei-subs-head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #eceff2;
+    background: #fbfcfd;
 }
 
-@media (max-width: 575px) {
-    .u-section-1 .u-sheet-1 {
-        min-height: 478px;
+.ei-subs-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2933;
+}
+
+.ei-subs-count {
+    font-size: 13px;
+    color: #7a838e;
+}
+
+.ei-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #d4dae1 transparent;
+}
+
+.ei-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ei-scroll::-webkit-scrollbar-thumb {
+    background: #d4dae1;
+    border-radius: 999px;
+}
+
+.ei-scroll::-webkit-scrollbar-thumb:hover {
+    background: #bfc7d0;
+}
+
+.ei-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13.5px;
+}
+
+.ei-table th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 11px 14px;
+    background: #f7f9fb;
+    border-bottom: 1px solid #e3e7ec;
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #6b7480;
+    white-space: nowrap;
+}
+
+.ei-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #f1f3f6;
+    line-height: 1.35;
+    color: #1f2933;
+    overflow-wrap: anywhere;
+}
+
+.ei-table tbody tr:hover {
+    background: #f4fbfa;
+}
+
+.ei-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ei-table a {
+    color: #17817b;
+    text-decoration: none;
+}
+
+.ei-table a:hover {
+    text-decoration: underline;
+}
+
+.ei-nowrap {
+    white-space: nowrap;
+}
+
+.ei-empty {
+    padding: 30px 20px;
+    text-align: center;
+    color: #7a838e;
+    font-size: 14px;
+}
+
+/* ---------- Адаптив ---------- */
+
+@media (max-width: 860px) {
+    .ei-card {
+        grid-template-columns: 150px minmax(0, 1fr);
+        gap: 18px;
+        padding: 18px;
     }
 
-    .u-section-1 .u-layout-cell-1 {
-        min-height: 191px;
+    .ei-photo {
+        max-height: 190px;
     }
 
-    .u-section-1 .u-image-1 {
-        height: 163px;
-    }
-
-    .u-section-1 .u-line-1 {
-        width: 340px;
-    }
-
-    .u-section-1 .u-line-2 {
-        width: 340px;
-    }
-}.u-section-2 .u-sheet-1 {
-     min-height: 362px;
- }
-
-.u-section-2 .u-text-1 {
-    margin: 12px 363px 0 27px;
-}
-
-.u-section-2 .u-table-1 {
-    width: 1086px;
-    margin: 12px auto 60px;
-}
-
-.u-section-2 .u-table-entity-1 {
-    min-height: 100px;
-}
-
-.u-section-2 .u-table-header-1 {
-    background-image: none;
-    font-weight: 700;
-}
-
-.u-section-2 .u-table-cell-7 {
-    background-image: none;
-}
-
-.u-section-2 .u-table-cell-13 {
-    background-image: none;
-}
-
-.u-section-2 .u-table-cell-19 {
-    background-image: none;
-}
-
-.u-section-2 .u-table-cell-25 {
-    background-image: none;
-}
-
-.u-block-a49d-35 {
-    background-image: none;
-}
-
-@media (max-width: 1199px) {
-    .u-section-2 .u-text-1 {
-        margin-right: 190px;
-        margin-left: 0;
-    }
-
-    .u-section-2 .u-table-1 {
-        width: 940px;
-    }
-}
-
-@media (max-width: 991px) {
-    .u-section-2 .u-text-1 {
-        margin-right: 0;
-    }
-
-    .u-section-2 .u-table-1 {
-        width: 720px;
-    }
-}
-
-@media (max-width: 767px) {
-    .u-section-2 .u-table-1 {
-        width: 540px;
+    .ei-facts {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
     }
 }
 
-@media (max-width: 575px) {
-    .u-section-2 .u-table-1 {
-        width: 340px;
+@media (max-width: 600px) {
+    body.ei-body {
+        overflow: auto;
+    }
+
+    .ei-page {
+        height: auto;
+        min-height: 100%;
+        padding: 14px;
+    }
+
+    .ei-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ei-photo {
+        max-width: 190px;
+        margin: 0 auto;
+    }
+
+    .ei-subs {
+        flex: 0 0 auto;
+    }
+
+    .ei-scroll {
+        max-height: 60vh;
+    }
+
+    .ei-table th:nth-child(4),
+    .ei-table td:nth-child(4),
+    .ei-table th:nth-child(5),
+    .ei-table td:nth-child(5) {
+        display: none;
     }
 }

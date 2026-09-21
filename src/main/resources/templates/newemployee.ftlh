@@ -1,28 +1,40 @@
 <#import "parts/main.ftlh" as c>
 <@c.page>
-    <h2 align="center">Добро пожаловать в команду!</h2>
     <section class="u-clearfix u-section-1" id="sec-3a3e">
         <div class="u-clearfix u-sheet u-sheet-1">
-            <div class="u-expanded-width u-list u-list-1">
-                <div class="u-repeater u-repeater-1">
-                    <#if newemployees?? && newemployees?has_content>
+            <h2 align="center">Добро пожаловать в команду!</h2>
+
+            <div class="pb-wrap">
+                <#if newemployees?? && newemployees?has_content>
+                    <p class="pb-section-sub">Коллеги, которые недавно вышли на работу</p>
+
+                    <div class="pb-people">
                         <#list newemployees as new>
-                            <div class="u-container-style u-list-item u-repeater-item">
-                                <div class="u-container-layout u-similar-container u-valign-top u-container-layout-2">
-                                    <p class="u-align-left u-custom-font u-font-roboto u-text u-text-2"> ${new.name}</p>
-                                    <img class="u-align-center u-image u-image-round u-radius u-image-1" src="data:image/png;base64,${new.photo}" alt="" data-image-width="1024" data-image-height="1024">
-                                    <p class="u-align-left u-custom-font u-font-roboto u-text u-text-3"> ${new.position}</p>
-                                    <p class="u-align-left u-custom-font u-font-roboto u-text u-text-4"> ${new.department}</p>
-                                    <p class="u-align-right u-custom-font u-font-roboto u-text u-text-5"> Дата приема: ${new.receptionDate}</p>
+                            <div class="pb-person">
+                                <span class="pb-person-flag" aria-hidden="true">👋</span>
+                                <span class="pb-person-avatar">
+                                    <img src="data:image/png;base64,${new.photo!''}" width="96" height="96" loading="lazy" alt=""
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <span class="pb-avatar-fallback" style="display:none">${(new.name!'?')?substring(0,1)}</span>
+                                </span>
+                                <div class="pb-person-name">${new.name}</div>
+                                <div class="pb-person-position">${new.position!''}</div>
+                                <div class="pb-person-dept">${new.department!''}</div>
+                                <div class="pb-person-foot">
+                                    <span class="pb-pill">Принят: ${new.receptionDate!''}</span>
                                 </div>
                             </div>
                         </#list>
-                    <#else>
-                        <h2 align="center">Новых сотрудников нет!</h2>
-                    </#if>
-                </div>
+                    </div>
+                <#else>
+                    <div class="pb-table-card">
+                        <div class="pb-empty" style="display:flex">
+                            <p>Новых сотрудников нет</p>
+                            <span>Как только кто-то выйдет на работу, он появится здесь</span>
+                        </div>
+                    </div>
+                </#if>
             </div>
         </div>
     </section>
-
 </@c.page>
