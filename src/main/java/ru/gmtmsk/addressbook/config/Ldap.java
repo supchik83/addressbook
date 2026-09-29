@@ -25,8 +25,17 @@ import javax.naming.directory.*;
 import javax.naming.ldap.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 
 @Configuration
@@ -51,6 +60,13 @@ public class Ldap {
     private CacheManager cacheManager;
 
     private ArrayList<Employee> employeeLDAP;
+
+    // Лог изменений, сделанных последним вызовом updateEmployees (для отображения на странице /updateusers)
+    private List<String> lastUpdateLog = new ArrayList<>();
+
+    public List<String> getLastUpdateLog() {
+        return lastUpdateLog;
+    }
 
 
     // Загрузка пользователей из Active Directory
@@ -369,90 +385,268 @@ public class Ldap {
     }
 
 
+    // Порог схожести ФИО (в процентах), при котором пользователь считается найденным по имени
+    private static final double NAME_MATCH_THRESHOLD = 94.0;
+
+    private static class NameMatch {
+        final Employee ldap;
+        final Employee excel;
+        final double score;
+
+        NameMatch(Employee ldap, Employee excel, double score) {
+            this.ldap = ldap;
+            this.excel = excel;
+            this.score = score;
+        }
+    }
+
     //Обновление данных пользователей
     public ArrayList<Employee> updateEmployees(ArrayList<Employee> employeesExl){
+        lastUpdateLog = new ArrayList<>();
+        employeeLDAP = LoadEmployeesAD();
+
+        Set<String> matchedDn = new HashSet<>();                                   // DN найденных в AD пользователей
+        Set<Employee> usedExcel = Collections.newSetFromMap(new IdentityHashMap<>()); // уже сопоставленные строки файла
+        LdapContext ctx = null;
         try {
-            Hashtable<String, String> env = connectLdap();
-            LdapContext ctx = new InitialLdapContext(env, null);
+            ctx = new InitialLdapContext(connectLdap(), null);
 
-            employeeLDAP = LoadEmployeesAD();
+            // ---------- Этап 1: сопоставление по табельному номеру ----------
+            Map<String, Employee> excelByTab = new HashMap<>();
+            for (Employee empExl : employeesExl) {
+                String tab = nvl(empExl.getTabNumber()).trim();
+                if (tab.isEmpty()) {
+                    continue;
+                }
+                if (excelByTab.putIfAbsent(tab, empExl) != null) {
+                    logger.warn("В файле повторяется табельный номер {}: {}", tab, empExl.getName());
+                }
+            }
 
-            for (Employee empLdap: employeeLDAP){
-                for (Employee empExl: employeesExl){
-                    if (empLdap.getTabNumber().equals(empExl.getTabNumber())){
-                        if (!empLdap.getDepartment().equals(empExl.getDepartment())){
-                            ModificationItem[] mods = new ModificationItem[1];
-                            mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("department", empExl.getDepartment()));
-                            ctx.modifyAttributes(empLdap.getDN(), mods);
-                            logger.info("Изменены данные пользователя: " + empLdap.getName() + "- " + empLdap.getDepartment() + " на " + empExl.getDepartment());
-                        }
-                        if (!empLdap.getPosition().equals(empExl.getPosition())){
-                            ModificationItem[] mods = new ModificationItem[1];
-                            mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("title", empExl.getPosition()));
-                            ctx.modifyAttributes(empLdap.getDN(), mods);
-                            logger.info("Изменены данные пользователя: " + empLdap.getName() + "- " + empLdap.getPosition() + " на " + empExl.getPosition());
+            List<Employee> notFoundByTab = new ArrayList<>();
+            for (Employee empLdap : employeeLDAP) {
+                String tab = nvl(empLdap.getTabNumber()).trim();
+                Employee empExl = tab.isEmpty() ? null : excelByTab.get(tab);
+                if (empExl != null && usedExcel.add(empExl)) {
+                    matchedDn.add(empLdap.getDN());
+                    applyChanges(ctx, empLdap, empExl, false);
+                } else {
+                    notFoundByTab.add(empLdap);
+                }
+            }
 
-                        }
-                        if (!empLdap.getSex().equals(empExl.getSex())){
-                            ModificationItem[] mods = new ModificationItem[1];
-                            mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("extensionAttribute5", empExl.getSex()));
-                            ctx.modifyAttributes(empLdap.getDN(), mods);
-                            logger.info("Изменены данные пользователя: " + empLdap.getName() + "- " + empLdap.getSex() + " на " + empExl.getSex());
-                        }
-                        StringBuilder builder = new StringBuilder(empExl.getBirthday());
-                        String birthday = builder.delete(5,10).toString();
-                        if (!empLdap.getBirthday().equals(birthday)){
-                            ModificationItem[] mods = new ModificationItem[1];
-                            mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("extensionAttribute1", empExl.getBirthday()));
-                            ctx.modifyAttributes(empLdap.getDN(), mods);
-                            logger.info("Изменены данные пользователя: " + empLdap.getName() + "- " + empLdap.getBirthday() + " на " + empExl.getBirthday());
-                        }
+            // ---------- Этап 2: для не найденных - поиск по ФИО (схожесть >= 94%) ----------
+            List<Employee> remainingExcel = new ArrayList<>();
+            for (Employee empExl : employeesExl) {
+                if (!usedExcel.contains(empExl)) {
+                    remainingExcel.add(empExl);
+                }
+            }
 
-                        if (!empLdap.getReceptionDate().equals(empExl.getReceptionDate())){
-                            ModificationItem[] mods = new ModificationItem[1];
-                            mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("extensionAttribute2", empExl.getReceptionDate()));
-                            ctx.modifyAttributes(empLdap.getDN(), mods);
-                            logger.info("Изменены данные пользователя: " + empLdap.getName() + "- " + empLdap.getReceptionDate() + " на " + empExl.getReceptionDate());
-                        }
-
-                        if (!empLdap.getLack().equals(empExl.getLack())){
-                            ModificationItem[] mods = new ModificationItem[1];
-                            if (empExl.getLack().equals("") || empExl.getLack().equals("#NULL!")){
-                                mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("extensionAttribute3", null));
-                            }else {
-                                mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("extensionAttribute3", empExl.getLack()));
-                            }
-                            ctx.modifyAttributes(empLdap.getDN(), mods);
-
-                        }
-                        if (!empLdap.getCause().equals(empExl.getCause())){
-                            ModificationItem[] mods = new ModificationItem[1];
-                            if (empExl.getCause().equals("") || empExl.getCause().equals("#NULL!")) {
-                                mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("extensionAttribute4", null));
-                                //System.out.println("Изменены данные пользователя: " + empLdap.getName() + "- " + empLdap.getCause() + " на " + "null");
-                            } else if (empExl.getCause().equals("Болезнь")){
-                                mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("extensionAttribute4", "Временная нетрудоспособность"));
-                            } else {
-                                mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("extensionAttribute4", empExl.getCause()));
-                                //System.out.println("Изменены данные пользователя: " + empLdap.getName() + "- " + empLdap.getCause() + " на " + empExl.getCause());
-                            }
-                            ctx.modifyAttributes(empLdap.getDN(), mods);
-                        }
+            List<NameMatch> candidates = new ArrayList<>();
+            for (Employee empLdap : notFoundByTab) {
+                if (findEmployees.isException(empLdap.getName())) {
+                    continue;
+                }
+                for (Employee empExl : remainingExcel) {
+                    double score = nameSimilarity(empLdap.getName(), empExl.getName());
+                    if (score >= NAME_MATCH_THRESHOLD) {
+                        candidates.add(new NameMatch(empLdap, empExl, score));
                     }
                 }
             }
-            ctx.close();
-            cacheManager.getCache("employees").clear();
+            // Сначала самые точные совпадения, чтобы одна строка файла не досталась "чужому" пользователю
+            candidates.sort((a, b) -> Double.compare(b.score, a.score));
+
+            for (NameMatch m : candidates) {
+                if (matchedDn.contains(m.ldap.getDN()) || usedExcel.contains(m.excel)) {
+                    continue;
+                }
+                matchedDn.add(m.ldap.getDN());
+                usedExcel.add(m.excel);
+                String matchMsg = String.format(
+                        "Пользователь найден по ФИО (%.1f%%): AD - \"%s\" (таб.№ %s), файл - \"%s\" (таб.№ %s)",
+                        m.score, m.ldap.getName(), m.ldap.getTabNumber(), m.excel.getName(), m.excel.getTabNumber());
+                logger.warn(matchMsg);
+                lastUpdateLog.add(matchMsg);
+                applyChanges(ctx, m.ldap, m.excel, true);
+            }
         } catch (NamingException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (ctx != null) {
+                try {
+                    ctx.close();
+                } catch (NamingException e) {
+                    logger.warn("Не удалось закрыть LDAP-соединение", e);
+                }
+            }
         }
-        ArrayList<Employee> firedEmp= new ArrayList<>();
-        for (Employee emp: employeeLDAP){
-            if (!employeesExl.contains(emp) && !findEmployees.isException(emp.getName())){
+
+        if (cacheManager.getCache("employees") != null) {
+            cacheManager.getCache("employees").clear();
+        }
+
+        // Не найденные ни по табельному номеру, ни по ФИО - кандидаты на увольнение
+        ArrayList<Employee> firedEmp = new ArrayList<>();
+        for (Employee emp : employeeLDAP) {
+            if (!matchedDn.contains(emp.getDN()) && !findEmployees.isException(emp.getName())) {
                 firedEmp.add(emp);
             }
         }
         return firedEmp;
+    }
+
+    // Применяет к пользователю AD данные из файла одним запросом.
+    // updateTabNumber = true, если пользователь найден по ФИО и табельный номер нужно актуализировать.
+    private void applyChanges(LdapContext ctx, Employee empLdap, Employee empExl, boolean updateTabNumber) {
+        String who = empLdap.getName();
+        List<ModificationItem> mods = new ArrayList<>();
+
+        String tab = nvl(empExl.getTabNumber()).trim();
+        String department = nvl(empExl.getDepartment());
+        String position = nvl(empExl.getPosition());
+        String sex = nvl(empExl.getSex());
+        String birthday = nvl(empExl.getBirthday());
+        String receptionDate = nvl(empExl.getReceptionDate());
+        String lack = clearNull(empExl.getLack());
+        String cause = clearNull(empExl.getCause());
+        if (cause.equals("Болезнь")) {
+            cause = "Временная нетрудоспособность";
+        }
+
+        if (updateTabNumber && !tab.isEmpty() && !tab.equals(nvl(empLdap.getTabNumber()).trim())) {
+            mods.add(replaceAttr("postOfficeBox", tab));
+            logChange(who, "табельный номер", empLdap.getTabNumber(), tab);
+        }
+        if (!nvl(empLdap.getDepartment()).equals(department)) {
+            mods.add(replaceAttr("department", department));
+            logChange(who, "подразделение", empLdap.getDepartment(), department);
+        }
+        if (!nvl(empLdap.getPosition()).equals(position)) {
+            mods.add(replaceAttr("title", position));
+            logChange(who, "должность", empLdap.getPosition(), position);
+        }
+        if (!nvl(empLdap.getSex()).equals(sex)) {
+            mods.add(replaceAttr("extensionAttribute5", sex));
+            logChange(who, "пол", empLdap.getSex(), sex);
+        }
+        // В AD хранится полная дата, а при загрузке из AD год обрезается - сравниваем в том же формате
+        String birthdayShort = birthday;
+        if (birthdayShort.length() > 5) {
+            birthdayShort = new StringBuilder(birthdayShort).delete(5, 10).toString();
+        }
+        if (!nvl(empLdap.getBirthday()).equals(birthdayShort)) {
+            mods.add(replaceAttr("extensionAttribute1", birthday));
+            logChange(who, "дата рождения", empLdap.getBirthday(), birthday);
+        }
+        if (!nvl(empLdap.getReceptionDate()).equals(receptionDate)) {
+            mods.add(replaceAttr("extensionAttribute2", receptionDate));
+            logChange(who, "дата приема", empLdap.getReceptionDate(), receptionDate);
+        }
+        if (!nvl(empLdap.getLack()).equals(lack)) {
+            mods.add(replaceAttr("extensionAttribute3", lack));
+            logChange(who, "отсутствие", empLdap.getLack(), lack);
+        }
+        if (!nvl(empLdap.getCause()).equals(cause)) {
+            mods.add(replaceAttr("extensionAttribute4", cause));
+            logChange(who, "причина отсутствия", empLdap.getCause(), cause);
+        }
+
+        if (mods.isEmpty()) {
+            return;
+        }
+        try {
+            ctx.modifyAttributes(empLdap.getDN(), mods.toArray(new ModificationItem[0]));
+        } catch (NamingException e) {
+            // Ошибка по одному пользователю не должна прерывать обновление остальных
+            logger.error("Не удалось обновить пользователя " + who + " (" + empLdap.getDN() + ")", e);
+            return;
+        }
+
+        // Синхронизируем данные в памяти с тем, что записано в AD
+        if (updateTabNumber && !tab.isEmpty()) {
+            empLdap.setTabNumber(tab);
+        }
+        empLdap.setDepartment(department);
+        empLdap.setPosition(position);
+        empLdap.setSex(sex);
+        empLdap.setBirthday(birthdayShort);
+        empLdap.setReceptionDate(receptionDate);
+        empLdap.setLack(lack);
+        empLdap.setCause(cause);
+    }
+
+    private static ModificationItem replaceAttr(String attrName, String value) {
+        // Атрибут без значений при REPLACE удаляет атрибут в AD
+        BasicAttribute attr = (value == null || value.isEmpty())
+                ? new BasicAttribute(attrName)
+                : new BasicAttribute(attrName, value);
+        return new ModificationItem(DirContext.REPLACE_ATTRIBUTE, attr);
+    }
+
+    private void logChange(String who, String field, String oldValue, String newValue) {
+        String msg = String.format("%s - %s: \"%s\" -> \"%s\"", who, field, nvl(oldValue), newValue);
+        logger.info("Изменены данные пользователя: {}", msg);
+        lastUpdateLog.add(msg);
+    }
+
+    private static String nvl(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static String clearNull(String s) {
+        String v = nvl(s).trim();
+        return v.equals("#NULL!") ? "" : v;
+    }
+
+    // ---------- Нечеткое сравнение ФИО ----------
+
+    // Схожесть двух ФИО в процентах (0..100): нормированное расстояние Левенштейна,
+    // берется лучшее из сравнения "как есть" и с упорядоченными словами
+    private static double nameSimilarity(String a, String b) {
+        String s1 = normalizeName(a);
+        String s2 = normalizeName(b);
+        if (s1.isEmpty() || s2.isEmpty()) {
+            return 0;
+        }
+        double direct = levenshteinRatio(s1, s2);
+        double sorted = levenshteinRatio(sortWords(s1), sortWords(s2));
+        return Math.max(direct, sorted);
+    }
+
+    private static String normalizeName(String s) {
+        return nvl(s).toLowerCase(Locale.ROOT).replace('ё', 'е').replaceAll("\\s+", " ").trim();
+    }
+
+    private static String sortWords(String s) {
+        String[] words = s.split(" ");
+        Arrays.sort(words);
+        return String.join(" ", words);
+    }
+
+    private static double levenshteinRatio(String a, String b) {
+        int maxLen = Math.max(a.length(), b.length());
+        if (maxLen == 0) {
+            return 100;
+        }
+        int[] prev = new int[b.length() + 1];
+        int[] curr = new int[b.length() + 1];
+        for (int j = 0; j <= b.length(); j++) {
+            prev[j] = j;
+        }
+        for (int i = 1; i <= a.length(); i++) {
+            curr[0] = i;
+            for (int j = 1; j <= b.length(); j++) {
+                int cost = a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1;
+                curr[j] = Math.min(Math.min(curr[j - 1] + 1, prev[j] + 1), prev[j - 1] + cost);
+            }
+            int[] tmp = prev;
+            prev = curr;
+            curr = tmp;
+        }
+        int distance = prev[b.length()];
+        return (1.0 - (double) distance / maxLen) * 100.0;
     }
 
     public void firedEmployees(ArrayList<String> usersNames){

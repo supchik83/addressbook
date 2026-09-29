@@ -13,6 +13,7 @@ import ru.gmtmsk.addressbook.service.FindEmployees;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @Controller
 //@RequestMapping("/service")
@@ -29,14 +30,16 @@ public class UserController {
 
     ArrayList<Employee> employees;
 
+    // Пользователи, не найденные в AD ни по табельному номеру, ни по ФИО (для страницы /updateusers)
+    ArrayList<Employee> firedEmp;
+
+    // Лог изменений, сделанных последним обновлением через /upload2 (для страницы /updateusers)
+    List<String> changeLog = new ArrayList<>();
+
     String message = "";
 
     private HashMap<Employee, ArrayList<Employee>> users;
 
-    @GetMapping("/login")
-    public String showLoginPage() {
-        return "login-page";
-    }
 
     @GetMapping("/addusers")
 //    @PreAuthorize("hasRole('ADMIN')")
@@ -82,7 +85,8 @@ public class UserController {
     @GetMapping("/updateusers")
 //    @PreAuthorize("hasRole('ADMIN')")
     public String updateUsersTroughExcel(Model model){
-        model.addAttribute("firedEmp", employees);
+        model.addAttribute("firedEmp", firedEmp);
+        model.addAttribute("changeLog", changeLog);
         return "updateusers";
     }
 
@@ -92,20 +96,26 @@ public class UserController {
             redirectAttributes.addFlashAttribute("message", "Пожалуйста, выберете файл для загрузки.");
             return "redirect:/updateusers";
         }
-        employees = ldap.updateEmployees(excel.parseFile(file));
+        firedEmp = ldap.updateEmployees(excel.parseFile(file));
+        changeLog = ldap.getLastUpdateLog();
 
+        redirectAttributes.addFlashAttribute("message", "Данные пользователей обновлены. Изменений: " + changeLog.size());
         return "redirect:updateusers";
     }
 
     @PostMapping("/fired")
-    private String firedEmployee(@RequestParam(value = "fired", required = false) ArrayList<String> usersName){
-        if (usersName != null){
+    private String firedEmployee(@RequestParam(value = "fired", required = false) ArrayList<String> usersName, RedirectAttributes redirectAttributes){
+        if (usersName != null && !usersName.isEmpty()){
             ldap.firedEmployees(usersName);
-            message = "Выбранные пользователи перемещены в группу Уволенные;";
+            // Убираем уволенных пользователей из списка "не найденных" без повторного обращения к AD
+            if (firedEmp != null) {
+                firedEmp.removeIf(emp -> usersName.contains(emp.getUsername()));
+            }
+            redirectAttributes.addFlashAttribute("message", "Выбранные пользователи перемещены в группу Уволенные;");
         }else {
-            message = "Не выбран ниодин пользователь";
+            redirectAttributes.addFlashAttribute("message", "Не выбран ниодин пользователь");
         }
-        return "redirect:finish";
+        return "redirect:/updateusers";
     }
 
     //Обновление кабинетов
