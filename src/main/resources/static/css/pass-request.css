@@ -1,0 +1,375 @@
+/* =========================================================
+   Заказ временного пропуска — в стиле портала (pb-* карточки, бирюзовый акцент).
+   Подключается в pass-request.ftlh; при желании можно дописать в конец main.css.
+   Селекторы с префиксом .pr-wrap перебивают глобальные h1/h2/p из main.css.
+   ========================================================= */
+
+.pr-wrap {
+    max-width: 920px;
+}
+
+.pr-wrap .pr-title {
+    margin: 8px 0 8px;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+    color: #1f2933;
+}
+
+/* Карточка раздела */
+.pr-card {
+    margin-bottom: 22px;
+    padding: 22px;
+    background: #fff;
+    border: 1px solid #eceff2;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(20, 30, 40, 0.06);
+}
+
+.pr-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin-bottom: 16px;
+}
+
+.pr-wrap .pr-card-title {
+    margin: 0 0 2px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #1f2933;
+}
+
+.pr-card-hint {
+    max-width: 520px;
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: #6b7480;
+}
+
+/* Кнопка «Добавить» */
+.pr-add {
+    padding: 9px 18px;
+    border: 1px solid #bfe8e5;
+    border-radius: 999px;
+    background: #eef6f5;
+    color: #17817b;
+    font-size: 13.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.pr-add:hover {
+    background: #e2f4f2;
+    border-color: #2cccc4;
+}
+
+/* Список строк и строка */
+.pr-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.pr-row {
+    padding: 16px;
+    background: #fbfcfd;
+    border: 1px solid #eceff2;
+    border-radius: 12px;
+}
+
+.pr-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.pr-row-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #1f2933;
+}
+
+.pr-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: #eef1f4;
+    color: #6b7480;
+    font-size: 19px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.pr-remove:hover {
+    background: #fbe4e1;
+    color: #c0392b;
+}
+
+/* Поля */
+.pr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+}
+
+.pr-span-2 {
+    grid-column: 1 / -1;
+}
+
+.pr-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    margin: 0;
+}
+
+.pr-field > span {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5461;
+}
+
+.pr-field input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #e1e5ea;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 15px;
+    color: #1f2933;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.pr-field input::placeholder {
+    color: #9aa2ab;
+}
+
+.pr-field input:focus {
+    border-color: #2cccc4;
+    box-shadow: 0 0 0 3px rgba(44, 204, 196, .18);
+}
+
+.pr-field:has(.pr-error) input {
+    border-color: #e08a80;
+}
+
+.pr-plate {
+    font-weight: 600;
+    letter-spacing: .06em;
+}
+
+.pr-error {
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: #c0392b;
+}
+
+/* Пустое состояние */
+.pr-empty {
+    padding: 22px;
+    border: 1px dashed #d7dce2;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 14px;
+    color: #7a838e;
+}
+
+.pr-empty[hidden],
+.pr-alert[hidden] {
+    display: none;
+}
+
+/* Сообщения */
+.pr-alert {
+    margin-bottom: 18px;
+    padding: 13px 18px;
+    border-radius: 12px;
+    font-size: 14.5px;
+    line-height: 1.4;
+}
+
+.pr-alert-ok {
+    background: #e8f7f5;
+    border: 1px solid #bfe8e5;
+    color: #17665f;
+}
+
+.pr-alert-err {
+    background: #fdecea;
+    border: 1px solid #f3c5bf;
+    color: #a5301f;
+}
+
+/* Отправка */
+.pr-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 40px;
+}
+
+.pr-submit {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #2cccc4, #1fb0a8);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(44, 204, 196, .35);
+    transition: filter .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.pr-submit:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(44, 204, 196, .42);
+}
+
+/* В main.css у кнопок и полей сброшен outline — возвращаем видимый фокус с клавиатуры */
+.pr-add:focus-visible,
+.pr-remove:focus-visible,
+.pr-submit:focus-visible {
+    outline: 2px solid #2cccc4;
+    outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+    .pr-card {
+        padding: 16px;
+    }
+
+    .pr-row {
+        padding: 14px;
+    }
+
+    .pr-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pr-add {
+        width: 100%;
+    }
+
+    .pr-actions {
+        justify-content: stretch;
+    }
+
+    .pr-submit {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pr-submit,
+    .pr-add,
+    .pr-remove,
+    .pr-field input {
+        transition: none;
+    }
+
+    .pr-submit:hover {
+        transform: none;
+    }
+}
+
+/* =========================================================
+   Выбор «Пешком / На автомобиле» и блок автомобиля внутри карточки посетителя
+   ========================================================= */
+.pr-wrap .pr-mode {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.pr-wrap .pr-mode legend {
+    float: none;
+    width: auto;
+    margin: 0 0 5px;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #4a5461;
+}
+
+.pr-seg {
+    display: inline-flex;
+    padding: 3px;
+    background: #eef1f4;
+    border-radius: 999px;
+}
+
+.pr-seg label {
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+}
+
+.pr-seg input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.pr-seg span {
+    display: block;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    color: #4a5461;
+    transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+.pr-seg input:checked + span {
+    background: #fff;
+    color: #17817b;
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(20, 30, 40, 0.12);
+}
+
+.pr-seg input:focus-visible + span {
+    outline: 2px solid #2cccc4;
+    outline-offset: 2px;
+}
+
+.pr-car {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed #d7dce2;
+}
+
+.pr-car[hidden] {
+    display: none;
+}
+
+.pr-car-hint {
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #6b7480;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pr-seg span {
+        transition: none;
+    }
+}

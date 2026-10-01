@@ -42,9 +42,21 @@
                             <a class="dropdown-item" href="/for-new-emp">Информация для новых сотрудников</a>
                         </div>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/diningroom">Меню столовой</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink3" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Сервисы для сотрудников
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink3">
+                            <a class="dropdown-item" href="/diningroom">Меню столовой</a>
+                            <a class="dropdown-item" href="/pass-request">Заказ временного пропуска</a>
+                        </div>
                     </li>
+<#--                    <li class="nav-item">-->
+<#--                        <a class="nav-link" aria-current="page" href="/diningroom">Меню столовой</a>-->
+<#--                    </li>-->
+<#--                    <li class="nav-item">-->
+<#--                        <a class="nav-link" aria-current="page" href="/pass-request">Заказ временного пропуска</a>-->
+<#--                    </li>-->
                     <#--                    <li class="nav-item">-->
                     <#--                        <a class="nav-link" href="#">Новости/события</a>-->
                     <#--                    </li>-->
